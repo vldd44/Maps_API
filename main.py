@@ -2,9 +2,10 @@ import os
 import sys
 
 import requests
-from PyQt6.QtGui import QPixmap, QKeyEvent
-from PyQt6.QtWidgets import QApplication, QWidget, QLabel
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QPixmap
+from PyQt6.QtWidgets import QApplication, QWidget, QLabel
+from PyQt6.uic.Compiler.qtproxies import QtCore
 
 SCREEN_SIZE = [600, 450]
 
@@ -12,22 +13,23 @@ SCREEN_SIZE = [600, 450]
 class Example(QWidget):
     def __init__(self):
         super().__init__()
-        self.api_key = 'f3a0fe3a-b07e-4840-a1da-06f18b2ddf13'
-        self.ll = '37.530887,55.703118'
-        self.z = 10
+        self.image = QLabel(self)
 
-        self.min_zoom = 0
-        self.max_zoom = 21
+        self.api_key = 'f3a0fe3a-b07e-4840-a1da-06f18b2ddf13'
+        self.latitude = 37.530887
+        self.longitude = 55.703118
+        self.z = 10
 
         self.getImage()
         self.initUI()
+        self.updateImage()
 
     def getImage(self):
         server_address = 'https://static-maps.yandex.ru/v1?'
         params = {
             'apikey': self.api_key,
-            'll': self.ll,
-            'z': self.z
+            'll': f'{self.latitude},{self.longitude}',
+            'z': self.z,
         }
         response = requests.get(url=server_address, params=params)
 
@@ -43,12 +45,6 @@ class Example(QWidget):
     def initUI(self):
         self.setGeometry(100, 100, *SCREEN_SIZE)
         self.setWindowTitle('Отображение карты')
-
-        self.pixmap = QPixmap(self.map_file)
-        self.image = QLabel(self)
-        self.image.move(0, 0)
-        self.image.resize(600, 450)
-        self.image.setPixmap(self.pixmap)
 
     def updateImage(self):
         self.pixmap = QPixmap(self.map_file)
@@ -67,6 +63,36 @@ class Example(QWidget):
                 self.z -= 1
             else:
                 self.z = 0
+            self.getImage()
+            self.updateImage()
+
+        if event.key() == Qt.Key.Key_Up:
+            if self.longitude < 90:
+                self.longitude += 0.1
+            else:
+                self.longitude = 90
+            self.getImage()
+            self.updateImage()
+        if event.key() == Qt.Key.Key_Down:
+            if self.longitude > -90:
+                self.longitude -= 0.1
+            else:
+                self.longitude = -90
+            self.getImage()
+            self.updateImage()
+
+        if event.key() == Qt.Key.Key_Left:
+            if self.latitude > -180:
+                self.latitude -= 0.1
+            else:
+                self.latitude = -180
+            self.getImage()
+            self.updateImage()
+        if event.key() == Qt.Key.Key_Right:
+            if self.latitude < 180:
+                self.latitude += 0.1
+            else:
+                self.latitude = 180
             self.getImage()
             self.updateImage()
 
