@@ -2,8 +2,9 @@ import os
 import sys
 
 import requests
-from PyQt6.QtGui import QPixmap
+from PyQt6.QtGui import QPixmap, QKeyEvent
 from PyQt6.QtWidgets import QApplication, QWidget, QLabel
+from PyQt6.QtCore import Qt
 
 SCREEN_SIZE = [600, 450]
 
@@ -14,6 +15,9 @@ class Example(QWidget):
         self.api_key = 'f3a0fe3a-b07e-4840-a1da-06f18b2ddf13'
         self.ll = '37.530887,55.703118'
         self.z = 10
+
+        self.min_zoom = 0
+        self.max_zoom = 21
 
         self.getImage()
         self.initUI()
@@ -40,12 +44,31 @@ class Example(QWidget):
         self.setGeometry(100, 100, *SCREEN_SIZE)
         self.setWindowTitle('Отображение карты')
 
-        ## Изображение
         self.pixmap = QPixmap(self.map_file)
         self.image = QLabel(self)
         self.image.move(0, 0)
         self.image.resize(600, 450)
         self.image.setPixmap(self.pixmap)
+
+    def updateImage(self):
+        self.pixmap = QPixmap(self.map_file)
+        self.image.setPixmap(self.pixmap)
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_PageUp:
+            if self.z < 21:
+                self.z += 1
+            else:
+                self.z = 21
+            self.getImage()
+            self.updateImage()
+        if event.key() == Qt.Key.Key_PageDown:
+            if self.z > 0:
+                self.z -= 1
+            else:
+                self.z = 0
+            self.getImage()
+            self.updateImage()
 
     def closeEvent(self, event):
         """При закрытии формы подчищаем за собой"""
